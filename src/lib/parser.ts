@@ -105,8 +105,8 @@ export function toIsoDate(raw: string): string {
   m = s.match(/\b(\d{4})\/(\d{2})\/(\d{2})\b/);
   if (m) return `${m[1]}-${m[2]}-${m[3]}`;
 
-  // "JUN 16, 2026" or "JUN 16 2026"
-  m = s.match(/\b([A-Za-z]{3})[a-z]*\.?\s+(\d{1,2}),?\s+(\d{4})\b/);
+  // "JUN 16, 2026" / "JUN 16 2026" / "JUN 16,2026" (BMO header style, no space after comma)
+  m = s.match(/\b([A-Za-z]{3})[a-z]*\.?[,\s]+(\d{1,2})[,\s]+(\d{4})\b/);
   if (m) {
     const mon = MONTHS[m[1].toLowerCase()];
     if (mon) return `${m[3]}-${mon}-${m[2].padStart(2, '0')}`;
@@ -138,9 +138,21 @@ export function extractSettlementDate(text: string): string {
 // Data-row detection & field extraction.
 // ---------------------------------------------------------------------------
 
-/** A line is a transaction record if its first non-space token is the "D" record type. */
+// A real BMO returned-debit item line looks like:
+//
+//    D   901  JUN 15  0003-00126  5040720   MRS FERNANDO SORRENTI  5O8HA38J2K7JM3H7GT   $79.04
+//        ^reason  ^value date     ^dest inst ^account              ^cross reference     ^amount
+//
+// The "D" record-type token only appears on the FIRST item of each reason-code
+// group; continuation items leave it blank. So a row is detected by its
+// structure — optional D, a 3-digit reason code, a 3-letter month + day value
+// date, and a dest-institution code — rather than by the leading "D". This also
+// excludes the TOTALS / metadata lines, which lack the month + dest-inst shape.
+const DATA_ROW_RE = /^\s*D?\s*\d{3}\s+[A-Za-z]{3}\s+\d{1,2}\s+\d{4}-\d{4,7}\b/;
+
+/** A line is a transaction record if it matches the returned-debit item structure. */
 export function isDataRow(line: string): boolean {
-  return /^\s*D(\s|$)/.test(line);
+  return DATA_ROW_RE.test(line);
 }
 
 interface ExtractedFields {
@@ -150,37 +162,43 @@ interface ExtractedFields {
   amount: string;
 }
 
+const MONEY_RE = /^\$?\s*\d{1,3}(?:,\d{3})*(?:\.\d{2})$|^\$?\d+\.\d{2}$/;
+const DEST_INST_RE = /^\d{4}-\d{4,7}$/;
+
 /**
- * Pull the four source values out of a single "D" data row.
+ * Pull the four source values out of a single returned-debit item row.
  *
- * Strategy: drop the leading "D" record type, then classify the remaining
- * whitespace-delimited tokens by shape:
+ * Extraction is positional relative to the columns we can anchor on, which is
+ * far more reliable than "longest token" guessing:
  *   - reason  = first standalone 3-digit integer (e.g. 901 / 908)
- *   - amount  = token shaped like money (digits + 2 decimals, optional $/commas)
- *   - account = longest pure-integer token that is not the reason code
- *   - crossRef= longest alphanumeric token that contains at least one letter
+ *   - account = the token immediately AFTER the dest-institution code
+ *               (NNNN-NNNNN), which sits just before the payee name
+ *   - amount  = the LAST money-shaped token on the line
+ *   - crossRef= the token immediately BEFORE the amount
  *
- * Returns null (with a reason) when a required field cannot be located.
+ * Returns an error (instead of fields) when a required field cannot be located.
  */
 export function extractRowFields(line: string): { fields?: ExtractedFields; error?: string } {
   const tokens = line.trim().split(/\s+/);
   if (tokens[0] === 'D') tokens.shift();
   if (tokens.length === 0) return { error: 'empty record' };
 
-  const moneyRe = /^\$?\s*\d{1,3}(?:,\d{3})*(?:\.\d{2})$|^\$?\d+\.\d{2}$/;
-
   const reason = tokens.find((t) => /^\d{3}$/.test(t)) ?? '';
 
-  const amountToken = tokens.find((t) => moneyRe.test(t)) ?? '';
-  const amount = amountToken.replace(/[$,\s]/g, '');
+  // Amount is the last money-shaped token; cross reference is the token before it.
+  let amountIdx = -1;
+  for (let i = tokens.length - 1; i >= 0; i--) {
+    if (MONEY_RE.test(tokens[i])) {
+      amountIdx = i;
+      break;
+    }
+  }
+  const amount = amountIdx >= 0 ? tokens[amountIdx].replace(/[$,\s]/g, '') : '';
+  const crossRef = amountIdx > 0 ? tokens[amountIdx - 1] : '';
 
-  const account = tokens
-    .filter((t) => /^\d+$/.test(t) && t !== reason)
-    .sort((a, b) => b.length - a.length)[0] ?? '';
-
-  const crossRef = tokens
-    .filter((t) => /[A-Za-z]/.test(t) && /^[A-Za-z0-9]+$/.test(t) && !moneyRe.test(t))
-    .sort((a, b) => b.length - a.length)[0] ?? '';
+  // Account number sits immediately after the dest-institution code.
+  const destIdx = tokens.findIndex((t) => DEST_INST_RE.test(t));
+  const account = destIdx >= 0 ? (tokens[destIdx + 1] ?? '') : '';
 
   const missing: string[] = [];
   if (!crossRef) missing.push('cross reference');
