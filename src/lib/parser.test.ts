@@ -53,9 +53,16 @@ describe('statusMessage mapping (Section 3.3)', () => {
   it('maps 908 to FUNDS NOT CLEARED', () => {
     expect(statusMessage('908')).toBe('FUNDS NOT CLEARED =');
   });
-  it('maps anything else to the default DECLINE RECORD', () => {
-    expect(statusMessage('915')).toBe('DECLINE RECORD =');
+  it('maps additional Canadian AFT return reason codes', () => {
+    expect(statusMessage('905')).toBe('ACCOUNT CLOSED =');
+    expect(statusMessage('903')).toBe('PAYMENT STOPPED / RECALLED =');
+    expect(statusMessage('912')).toBe('INVALID / INCORRECT ACCOUNT NO. =');
+    expect(statusMessage('922')).toBe('CUSTOMER INITIATED RETURN =');
+    expect(statusMessage('990')).toBe('DEFAULT BY A FINANCIAL INSTITUTION =');
+  });
+  it('falls back to DECLINE RECORD for unknown codes', () => {
     expect(statusMessage('000')).toBe('DECLINE RECORD =');
+    expect(statusMessage('999')).toBe('DECLINE RECORD =');
   });
 });
 

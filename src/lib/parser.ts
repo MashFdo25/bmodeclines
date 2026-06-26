@@ -71,17 +71,47 @@ export interface ConvertResult {
 }
 
 // ---------------------------------------------------------------------------
-// Status message mapping (Position 9) — Section 3.3 of the PRD.
+// Status message mapping (Position 9).
+//
+// Full Payments Canada / CPA AFT (Automated Funds Transfer) return reason codes
+// per Standard 007 / Rule H1, as published by Payments Canada and the major
+// financial institutions. Each code maps to its decline reason; the output
+// keeps the trailing " =" delimiter. Codes 901 and 908 retain the exact wording
+// from the original PRD ("NSF DEBIT", "FUNDS NOT CLEARED"). Unknown codes fall
+// back to DEFAULT_REASON_LABEL.
 // ---------------------------------------------------------------------------
+export const REASON_CODES: Record<string, string> = {
+  '900': 'EDIT REJECT',
+  '901': 'NSF DEBIT',
+  '902': 'ACCOUNT NOT FOUND',
+  '903': 'PAYMENT STOPPED / RECALLED',
+  '904': 'POST NO DEBITS',
+  '905': 'ACCOUNT CLOSED',
+  '906': 'ACCOUNT TRANSFERRED',
+  '907': 'NO DEBIT ALLOWED',
+  '908': 'FUNDS NOT CLEARED',
+  '909': 'CURRENCY / ACCOUNT MISMATCH',
+  '910': 'PAYOR / PAYEE DECEASED',
+  '911': 'ACCOUNT FROZEN',
+  '912': 'INVALID / INCORRECT ACCOUNT NO.',
+  '914': 'INCORRECT PAYOR / PAYEE NAME',
+  '915': 'NO AGREEMENT EXISTED',
+  '916': 'NOT IN ACCORDANCE WITH AGREEMENT - PERSONAL',
+  '917': 'AGREEMENT REVOKED - PERSONAL',
+  '918': 'NO PRE-NOTIFICATION - PERSONAL',
+  '919': 'NOT IN ACCORDANCE WITH AGREEMENT - BUSINESS',
+  '920': 'AGREEMENT REVOKED - BUSINESS',
+  '921': 'NO PRE-NOTIFICATION - BUSINESS',
+  '922': 'CUSTOMER INITIATED RETURN',
+  '990': 'DEFAULT BY A FINANCIAL INSTITUTION',
+};
+
+/** Reason label used when a return code is not in REASON_CODES. */
+export const DEFAULT_REASON_LABEL = 'DECLINE RECORD';
+
 export function statusMessage(reasonCode: string): string {
-  switch (reasonCode) {
-    case '901':
-      return 'NSF DEBIT =';
-    case '908':
-      return 'FUNDS NOT CLEARED =';
-    default:
-      return 'DECLINE RECORD =';
-  }
+  const label = REASON_CODES[reasonCode] ?? DEFAULT_REASON_LABEL;
+  return `${label} =`;
 }
 
 // ---------------------------------------------------------------------------

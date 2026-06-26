@@ -32,11 +32,37 @@ automatically.
 
 ### Status-message mapping (Position 9)
 
-| Reason code | Output message         |
-| ----------- | ---------------------- |
-| `901`       | `NSF DEBIT =`          |
-| `908`       | `FUNDS NOT CLEARED =`  |
-| any other   | `DECLINE RECORD =`     |
+Full Payments Canada / CPA AFT return reason codes (Standard 007 / Rule H1).
+Each code maps to its decline reason with a trailing ` =`. Unknown codes fall
+back to `DECLINE RECORD =`. The map lives in `REASON_CODES` in
+[`src/lib/parser.ts`](src/lib/parser.ts).
+
+| Code | Output message |
+| ---- | -------------- |
+| `900` | `EDIT REJECT =` |
+| `901` | `NSF DEBIT =` |
+| `902` | `ACCOUNT NOT FOUND =` |
+| `903` | `PAYMENT STOPPED / RECALLED =` |
+| `904` | `POST NO DEBITS =` |
+| `905` | `ACCOUNT CLOSED =` |
+| `906` | `ACCOUNT TRANSFERRED =` |
+| `907` | `NO DEBIT ALLOWED =` |
+| `908` | `FUNDS NOT CLEARED =` |
+| `909` | `CURRENCY / ACCOUNT MISMATCH =` |
+| `910` | `PAYOR / PAYEE DECEASED =` |
+| `911` | `ACCOUNT FROZEN =` |
+| `912` | `INVALID / INCORRECT ACCOUNT NO. =` |
+| `914` | `INCORRECT PAYOR / PAYEE NAME =` |
+| `915` | `NO AGREEMENT EXISTED =` |
+| `916` | `NOT IN ACCORDANCE WITH AGREEMENT - PERSONAL =` |
+| `917` | `AGREEMENT REVOKED - PERSONAL =` |
+| `918` | `NO PRE-NOTIFICATION - PERSONAL =` |
+| `919` | `NOT IN ACCORDANCE WITH AGREEMENT - BUSINESS =` |
+| `920` | `AGREEMENT REVOKED - BUSINESS =` |
+| `921` | `NO PRE-NOTIFICATION - BUSINESS =` |
+| `922` | `CUSTOMER INITIATED RETURN =` |
+| `990` | `DEFAULT BY A FINANCIAL INSTITUTION =` |
+| any other | `DECLINE RECORD =` |
 
 ## Calibration note
 
