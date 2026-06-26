@@ -24,7 +24,6 @@ export default function App() {
         const res = convert(text);
         setResult(res);
         setSourceName(file.name);
-        if (res.count > 0) triggerDownload(res.csv, res.fileName);
       } catch {
         setAppError('Failed to parse the file. Please verify it is a BMO EFT return report.');
       }
@@ -123,7 +122,7 @@ export default function App() {
 }
 
 function Results({ result, sourceName }: { result: ConvertResult; sourceName: string }) {
-  const redownload = () => triggerDownload(result.csv, result.fileName);
+  const download = () => triggerDownload(result.csv, result.fileName);
   return (
     <div className="mt-6 space-y-4">
       {result.count > 0 && (
@@ -137,11 +136,11 @@ function Results({ result, sourceName }: { result: ConvertResult; sourceName: st
             <span className="text-white/40"> ({sourceName} → {result.fileName})</span>
           </span>
           <button
-            onClick={redownload}
+            onClick={download}
             className="shrink-0 rounded-md px-3 py-1.5 text-xs font-medium text-black"
             style={{ backgroundColor: TEAL }}
           >
-            Download again
+            Download CSV
           </button>
         </div>
       )}

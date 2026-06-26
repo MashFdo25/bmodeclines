@@ -76,11 +76,11 @@ export interface ConvertResult {
 export function statusMessage(reasonCode: string): string {
   switch (reasonCode) {
     case '901':
-      return 'NSF DEBIT * DO NOT RETRY =';
+      return 'NSF DEBIT =';
     case '908':
-      return 'FUNDS NOT CLEARED * DO NOT RETRY =';
+      return 'FUNDS NOT CLEARED =';
     default:
-      return 'DECLINE RECORD * DO NOT RETRY =';
+      return 'DECLINE RECORD =';
   }
 }
 

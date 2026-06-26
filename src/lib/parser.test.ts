@@ -48,14 +48,14 @@ TYP  CDE  DATE       INST.    ACCOUNT NO.         PAYEE/PAYOR NAME        CROSS 
 
 describe('statusMessage mapping (Section 3.3)', () => {
   it('maps 901 to NSF DEBIT', () => {
-    expect(statusMessage('901')).toBe('NSF DEBIT * DO NOT RETRY =');
+    expect(statusMessage('901')).toBe('NSF DEBIT =');
   });
   it('maps 908 to FUNDS NOT CLEARED', () => {
-    expect(statusMessage('908')).toBe('FUNDS NOT CLEARED * DO NOT RETRY =');
+    expect(statusMessage('908')).toBe('FUNDS NOT CLEARED =');
   });
   it('maps anything else to the default DECLINE RECORD', () => {
-    expect(statusMessage('915')).toBe('DECLINE RECORD * DO NOT RETRY =');
-    expect(statusMessage('000')).toBe('DECLINE RECORD * DO NOT RETRY =');
+    expect(statusMessage('915')).toBe('DECLINE RECORD =');
+    expect(statusMessage('000')).toBe('DECLINE RECORD =');
   });
 });
 
@@ -144,7 +144,7 @@ describe('buildRow (16-column mapping)', () => {
   });
   it('carries the reason code and mapped status message', () => {
     expect(row[2]).toBe('901');
-    expect(row[9]).toBe('NSF DEBIT * DO NOT RETRY =');
+    expect(row[9]).toBe('NSF DEBIT =');
   });
   it('emits the hardcoded constants', () => {
     expect(row[3]).toBe('04');
@@ -190,7 +190,7 @@ describe('convert (end-to-end against the real BMO layout)', () => {
   it('maps the 908 group to the FUNDS NOT CLEARED message', () => {
     const last = result.rows[4];
     expect(last[2]).toBe('908');
-    expect(last[9]).toBe('FUNDS NOT CLEARED * DO NOT RETRY =');
+    expect(last[9]).toBe('FUNDS NOT CLEARED =');
   });
   it('builds the masked account id for the first item', () => {
     expect(result.rows[0][1]).toBe('660384990005040720');

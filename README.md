@@ -32,11 +32,11 @@ automatically.
 
 ### Status-message mapping (Position 9)
 
-| Reason code | Output message                     |
-| ----------- | ---------------------------------- |
-| `901`       | `NSF DEBIT * DO NOT RETRY =`        |
-| `908`       | `FUNDS NOT CLEARED * DO NOT RETRY =`|
-| any other   | `DECLINE RECORD * DO NOT RETRY =`   |
+| Reason code | Output message         |
+| ----------- | ---------------------- |
+| `901`       | `NSF DEBIT =`          |
+| `908`       | `FUNDS NOT CLEARED =`  |
+| any other   | `DECLINE RECORD =`     |
 
 ## Calibration note
 
