@@ -75,10 +75,9 @@ export interface ConvertResult {
 //
 // Full Payments Canada / CPA AFT (Automated Funds Transfer) return reason codes
 // per Standard 007 / Rule H1, as published by Payments Canada and the major
-// financial institutions. Each code maps to its decline reason; the output
-// keeps the trailing " =" delimiter. Codes 901 and 908 retain the exact wording
-// from the original PRD ("NSF DEBIT", "FUNDS NOT CLEARED"). Unknown codes fall
-// back to DEFAULT_REASON_LABEL.
+// financial institutions. Each code maps to its decline reason text. Codes 901
+// and 908 retain the exact wording from the original PRD ("NSF DEBIT",
+// "FUNDS NOT CLEARED"). Unknown codes fall back to DEFAULT_REASON_LABEL.
 // ---------------------------------------------------------------------------
 export const REASON_CODES: Record<string, string> = {
   '900': 'EDIT REJECT',
@@ -110,8 +109,7 @@ export const REASON_CODES: Record<string, string> = {
 export const DEFAULT_REASON_LABEL = 'DECLINE RECORD';
 
 export function statusMessage(reasonCode: string): string {
-  const label = REASON_CODES[reasonCode] ?? DEFAULT_REASON_LABEL;
-  return `${label} =`;
+  return REASON_CODES[reasonCode] ?? DEFAULT_REASON_LABEL;
 }
 
 // ---------------------------------------------------------------------------
